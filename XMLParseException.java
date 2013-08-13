@@ -47,6 +47,12 @@ public class XMLParseException
 {
 
     /**
+     * Serialization serial version ID.
+     */
+    static final long serialVersionUID = 1746316333291927094L;
+
+
+    /**
      * Indicates that no line number has been associated with this exception.
      */
     public static final int NO_LINE = -1;
@@ -57,7 +63,7 @@ public class XMLParseException
      * <code>NO_LINE</code> if the line number is unknown.
      *
      * <dl><dt><b>Invariants:</b></dt><dd>
-     * <ul><li><code>lineNr &gt 0 || lineNr == NO_LINE</code>
+     * <ul><li><code>lineNr &gt; 0 || lineNr == NO_LINE</code>
      * </ul></dd></dl>
      */
     private int lineNr;

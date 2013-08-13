@@ -37,9 +37,11 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.Vector;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -104,12 +106,6 @@ public class XMLElement
 {
 
     /**
-     * Serialization serial version ID.
-     */
-    static final long serialVersionUID = 6685035139346394777L;
-
-
-    /**
      * Major version of NanoXML. Classes with the same major and minor
      * version are binary compatible. Classes with the same major version
      * are source compatible. If the major version is different, you may
@@ -117,7 +113,7 @@ public class XMLElement
      *
      * @see nanoxml.XMLElement#NANOXML_MINOR_VERSION
      */
-    public static final int NANOXML_MAJOR_VERSION = 2;
+    public static final int NANOXML_MAJOR_VERSION = 3;
     
 
     /**
@@ -128,7 +124,7 @@ public class XMLElement
      *
      * @see nanoxml.XMLElement#NANOXML_MAJOR_VERSION
      */
-    public static final int NANOXML_MINOR_VERSION = 2;
+    public static final int NANOXML_MINOR_VERSION = 0;
 
 
     /**
@@ -140,7 +136,7 @@ public class XMLElement
      *     <li>The keys and the values are strings.
      * </ul></dd></dl>
      */
-    private Hashtable attributes;
+    private Map<String, String> attributes;
 
 
     /**
@@ -153,7 +149,7 @@ public class XMLElement
      *         or a subclass of <code>XMLElement</code>.
      * </ul></dd></dl>
      */
-    private Vector children;
+    private List<XMLElement> children;
 
 
     /**
@@ -196,14 +192,14 @@ public class XMLElement
      *     <li>The values are char arrays
      * </ul></dd></dl>
      */
-    private Hashtable entities;
+    private Map<String, char[]> entities;
 
 
     /**
      * The line number where the element starts.
      *
      * <dl><dt><b>Invariants:</b></dt><dd>
-     * <ul><li><code>lineNr &gt= 0</code>
+     * <ul><li><code>lineNr &gt; 0</code>
      * </ul></dd></dl>
      */
     private int lineNr;
@@ -256,7 +252,7 @@ public class XMLElement
     /**
      * Creates and initializes a new XML element.
      * Calling the construction is equivalent to:
-     * <ul><code>new XMLElement(new Hashtable(), false, true)
+     * <ul><code>new XMLElement(new HashMap&lt;String, char[]&gt;(), false, true)
      * </code></ul>
      *
      * <dl><dt><b>Postconditions:</b></dt><dd>
@@ -269,15 +265,15 @@ public class XMLElement
      *     <li>getName() => null
      * </ul></dd></dl>
      *
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable)
-     *         XMLElement(Hashtable)
+     * @see nanoxml.XMLElement#XMLElement(java.util.Map)
+     *         XMLElement(Map&lt;String, char[]&gt;)
      * @see nanoxml.XMLElement#XMLElement(boolean)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable,boolean)
-     *         XMLElement(Hashtable, boolean)
+     * @see nanoxml.XMLElement#XMLElement(java.util.Map,boolean)
+     *         XMLElement(Map&lt;String, char[]&gt;, boolean)
      */
     public XMLElement()
     {
-        this(new Hashtable(), false, true, true);
+        this(new HashMap<String, char[]>(), false, true, true);
     }
     
 
@@ -306,10 +302,10 @@ public class XMLElement
      *
      * @see nanoxml.XMLElement#XMLElement()
      * @see nanoxml.XMLElement#XMLElement(boolean)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable,boolean)
-     *         XMLElement(Hashtable, boolean)
+     * @see nanoxml.XMLElement#XMLElement(java.util.Map,boolean)
+     *         XMLElement(Map&lt;String, char[]&gt;, boolean)
      */
-    public XMLElement(Hashtable entities)
+    public XMLElement(Map<String, char[]> entities)
     {
         this(entities, false, true, true);
     }
@@ -318,7 +314,7 @@ public class XMLElement
     /**
      * Creates and initializes a new XML element.
      * Calling the construction is equivalent to:
-     * <ul><code>new XMLElement(new Hashtable(), skipLeadingWhitespace, true)
+     * <ul><code>new XMLElement(new HashMap&lt;String, char[]&gt;(), skipLeadingWhitespace, true)
      * </code></ul>
      *
      * @param skipLeadingWhitespace
@@ -336,14 +332,14 @@ public class XMLElement
      * </ul></dd></dl><dl>
      *
      * @see nanoxml.XMLElement#XMLElement()
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable)
-     *         XMLElement(Hashtable)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable,boolean)
-     *         XMLElement(Hashtable, boolean)
+     * @see nanoxml.XMLElement#XMLElement(java.util.Map)
+     *         XMLElement(Map&lt;String, char[]&gt;)
+     * @see nanoxml.XMLElement#XMLElement(java.util.Map,boolean)
+     *         XMLElement(Map&lt;String, char[]&gt;, boolean)
      */
     public XMLElement(boolean skipLeadingWhitespace)
     {
-        this(new Hashtable(), skipLeadingWhitespace, true, true);
+        this(new HashMap<String, char[]>(), skipLeadingWhitespace, true, true);
     }
 
 
@@ -375,11 +371,11 @@ public class XMLElement
      *
      * @see nanoxml.XMLElement#XMLElement()
      * @see nanoxml.XMLElement#XMLElement(boolean)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable)
-     *         XMLElement(Hashtable)
+     * @see nanoxml.XMLElement#XMLElement(java.util.Map)
+     *         XMLElement(Map&lt;String, char[]&gt;)
      */
-    public XMLElement(Hashtable entities,
-                      boolean   skipLeadingWhitespace)
+    public XMLElement(Map<String, char[]> entities,
+                      boolean             skipLeadingWhitespace)
     {
         this(entities, skipLeadingWhitespace, true, true);
     }
@@ -413,14 +409,14 @@ public class XMLElement
      *
      * @see nanoxml.XMLElement#XMLElement()
      * @see nanoxml.XMLElement#XMLElement(boolean)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable)
-     *         XMLElement(Hashtable)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable,boolean)
-     *         XMLElement(Hashtable, boolean)
+     * @see nanoxml.XMLElement#XMLElement(java.util.Map)
+     *         XMLElement(Map&lt;String, char[]&gt;)
+     * @see nanoxml.XMLElement#XMLElement(java.util.Map,boolean)
+     *         XMLElement(Map&lt;String, char[]&gt;, boolean)
      */
-    public XMLElement(Hashtable entities,
-                      boolean   skipLeadingWhitespace,
-                      boolean   ignoreCase)
+    public XMLElement(Map<String, char[]> entities,
+                      boolean             skipLeadingWhitespace,
+                      boolean             ignoreCase)
     {
         this(entities, skipLeadingWhitespace, true, ignoreCase);
     }
@@ -465,28 +461,19 @@ public class XMLElement
      *
      * @see nanoxml.XMLElement#createAnotherElement()
      */
-    protected XMLElement(Hashtable entities,
-                         boolean   skipLeadingWhitespace,
-                         boolean   fillBasicConversionTable,
-                         boolean   ignoreCase)
+    protected XMLElement(Map<String, char[]> entities,
+                         boolean             skipLeadingWhitespace,
+                         boolean             fillBasicConversionTable,
+                         boolean             ignoreCase)
     {
         this.ignoreWhitespace = skipLeadingWhitespace;
         this.ignoreCase = ignoreCase;
         this.name = null;
         this.contents = "";
-        this.attributes = new Hashtable();
-        this.children = new Vector();
+        this.attributes = new HashMap<String, String>();
+        this.children = new ArrayList<XMLElement>();
         this.entities = entities;
         this.lineNr = 0;
-        Enumeration enum = this.entities.keys();
-        while (enum.hasMoreElements()) {
-            Object key = enum.nextElement();
-            Object value = this.entities.get(key);
-            if (value instanceof String) {
-                value = ((String) value).toCharArray();
-                this.entities.put(key, value);
-            }
-        }
         if (fillBasicConversionTable) {
             this.entities.put("amp", new char[] { '&' });
             this.entities.put("quot", new char[] { '"' });
@@ -523,7 +510,7 @@ public class XMLElement
      */
     public void addChild(XMLElement child)
     {
-        this.children.addElement(child);
+        this.children.add(child);
     }
 
 
@@ -557,18 +544,18 @@ public class XMLElement
      * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.lang.Object)
      *         getAttribute(String, Object)
      * @see nanoxml.XMLElement#getAttribute(java.lang.String,
-     *                                      java.util.Hashtable,
+     *                                      java.util.Map,
      *                                      java.lang.String, boolean)
-     *         getAttribute(String, Hashtable, String, boolean)
+     *         getAttribute(String, Map, String, boolean)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String)
      *         getStringAttribute(String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
      *                                            java.lang.String)
      *         getStringAttribute(String, String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getStringAttribute(String, Hashtable, String, boolean)
+     *         getStringAttribute(String, Map, String, boolean)
      */
     public void setAttribute(String name,
                              Object value)
@@ -577,24 +564,6 @@ public class XMLElement
             name = name.toUpperCase();
         }
         this.attributes.put(name, value.toString());
-    }
-
-
-    /**
-     * Adds or modifies an attribute.
-     *
-     * @param name
-     *     The name of the attribute.
-     * @param value
-     *     The value of the attribute.
-     *
-     * @deprecated Use {@link #setAttribute(java.lang.String, java.lang.Object)
-     *             setAttribute} instead.
-     */
-    public void addProperty(String name,
-                            Object value)
-    {
-        this.setAttribute(name, value);
     }
 
 
@@ -629,9 +598,9 @@ public class XMLElement
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String, int)
      *         getIntAttribute(String, int)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String,
-     *                                         java.util.Hashtable,
+     *                                         java.util.Map,
      *                                         java.lang.String, boolean)
-     *         getIntAttribute(String, Hashtable, String, boolean)
+     *         getIntAttribute(String, Map, String, boolean)
      */
     public void setIntAttribute(String name,
                                 int    value)
@@ -640,24 +609,6 @@ public class XMLElement
             name = name.toUpperCase();
         }
         this.attributes.put(name, Integer.toString(value));
-    }
-
-
-    /**
-     * Adds or modifies an attribute.
-     *
-     * @param name
-     *     The name of the attribute.
-     * @param value
-     *     The value of the attribute.
-     *
-     * @deprecated Use {@link #setIntAttribute(java.lang.String, int)
-     *             setIntAttribute} instead.
-     */
-    public void addProperty(String key,
-                            int    value)
-    {
-        this.setIntAttribute(key, value);
     }
 
 
@@ -692,9 +643,9 @@ public class XMLElement
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String, double)
      *         getDoubleAttribute(String, double)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getDoubleAttribute(String, Hashtable, String, boolean)
+     *         getDoubleAttribute(String, Map, String, boolean)
      */
     public void setDoubleAttribute(String name,
                                    double value)
@@ -703,24 +654,6 @@ public class XMLElement
             name = name.toUpperCase();
         }
         this.attributes.put(name, Double.toString(value));
-    }
-
-
-    /**
-     * Adds or modifies an attribute.
-     *
-     * @param name
-     *     The name of the attribute.
-     * @param value
-     *     The value of the attribute.
-     *
-     * @deprecated Use {@link #setDoubleAttribute(java.lang.String, double)
-     *             setDoubleAttribute} instead.
-     */
-    public void addProperty(String name,
-                            double value)
-    {
-        this.setDoubleAttribute(name, value);
     }
 
 
@@ -764,54 +697,42 @@ public class XMLElement
      * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.lang.Object)
      *         getAttribute(String, String)
      * @see nanoxml.XMLElement#getAttribute(java.lang.String,
-     *                                      java.util.Hashtable,
+     *                                      java.util.Map,
      *                                      java.lang.String, boolean)
-     *         getAttribute(String, Hashtable, String, boolean)
+     *         getAttribute(String, Map, String, boolean)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String)
      *         getStringAttribute(String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
      *                                            java.lang.String)
      *         getStringAttribute(String, String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getStringAttribute(String, Hashtable, String, boolean)
+     *         getStringAttribute(String, Map, String, boolean)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String)
      *         getIntAttribute(String)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String, int)
      *         getIntAttribute(String, int)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String,
-     *                                         java.util.Hashtable,
+     *                                         java.util.Map,
      *                                         java.lang.String, boolean)
-     *         getIntAttribute(String, Hashtable, String, boolean)
+     *         getIntAttribute(String, Map, String, boolean)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String)
      *         getDoubleAttribute(String)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String, double)
      *         getDoubleAttribute(String, double)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getDoubleAttribute(String, Hashtable, String, boolean)
+     *         getDoubleAttribute(String, Map, String, boolean)
      * @see nanoxml.XMLElement#getBooleanAttribute(java.lang.String,
      *                                             java.lang.String,
      *                                             java.lang.String, boolean)
      *         getBooleanAttribute(String, String, String, boolean)
      */
-    public Enumeration enumerateAttributeNames()
+    public Iterator<String> enumerateAttributeNames()
     {
-        return this.attributes.keys();
-    }
-
-
-    /**
-     * Enumerates the attribute names.
-     *
-     * @deprecated Use {@link #enumerateAttributeNames()
-     *             enumerateAttributeNames} instead.
-     */
-    public Enumeration enumeratePropertyNames()
-    {
-        return this.enumerateAttributeNames();
+        return this.attributes.keySet().iterator();
     }
 
 
@@ -829,9 +750,9 @@ public class XMLElement
      * @see nanoxml.XMLElement#removeChild(nanoxml.XMLElement)
      *         removeChild(XMLElement)
      */
-    public Enumeration enumerateChildren()
+    public Iterator<XMLElement> enumerateChildren()
     {
-        return this.children.elements();
+        return this.children.iterator();
     }
 
 
@@ -850,27 +771,9 @@ public class XMLElement
      * @see nanoxml.XMLElement#removeChild(nanoxml.XMLElement)
      *         removeChild(XMLElement)
      */
-    public Vector getChildren()
+    public List<XMLElement> getChildren()
     {
-        try {
-            return (Vector) this.children.clone();
-        } catch (Exception e) {
-            // this never happens, however, some Java compilers are so
-            // braindead that they require this exception clause
-            return null;
-        }
-    }
-
-
-    /**
-     * Returns the PCDATA content of the object. If there is no such content,
-     * <CODE>null</CODE> is returned.
-     *
-     * @deprecated Use {@link #getContent() getContent} instead.
-     */
-    public String getContents()
-    {
-        return this.getContent();
+        return new ArrayList<XMLElement>(this.children);
     }
 
 
@@ -920,11 +823,11 @@ public class XMLElement
      * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.lang.Object)
      *         getAttribute(String, Object)
      * @see nanoxml.XMLElement#getAttribute(java.lang.String,
-     *                                      java.util.Hashtable,
+     *                                      java.util.Map,
      *                                      java.lang.String, boolean)
-     *         getAttribute(String, Hashtable, String, boolean)
+     *         getAttribute(String, Map, String, boolean)
      */
-    public Object getAttribute(String name)
+    public String getAttribute(String name)
     {
         return this.getAttribute(name, null);
     }
@@ -950,17 +853,17 @@ public class XMLElement
      * @see nanoxml.XMLElement#getAttribute(java.lang.String)
      *         getAttribute(String)
      * @see nanoxml.XMLElement#getAttribute(java.lang.String,
-     *                                      java.util.Hashtable,
+     *                                      java.util.Map,
      *                                      java.lang.String, boolean)
-     *         getAttribute(String, Hashtable, String, boolean)
+     *         getAttribute(String, Map, String, boolean)
      */
-    public Object getAttribute(String name,
-                               Object defaultValue)
+    public String getAttribute(String name,
+                               String defaultValue)
     {
         if (this.ignoreCase) {
             name = name.toUpperCase();
         }
-        Object value = this.attributes.get(name);
+        String value = this.attributes.get(name);
         if (value == null) {
             value = defaultValue;
         }
@@ -982,7 +885,7 @@ public class XMLElement
      * @param name
      *     The name of the attribute.
      * @param valueSet
-     *     Hashtable mapping keys to values.
+     *     Map mapping keys to values.
      * @param defaultKey
      *     Key to use if the attribute is missing.
      * @param allowLiterals
@@ -1005,15 +908,15 @@ public class XMLElement
      * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.lang.Object)
      *         getAttribute(String, Object)
      */
-    public Object getAttribute(String    name,
-                               Hashtable valueSet,
-                               String    defaultKey,
-                               boolean   allowLiterals)
+    public Object getAttribute(String                 name,
+                               Map<? super String, ?> valueSet,
+                               String                 defaultKey,
+                               boolean                allowLiterals)
     {
         if (this.ignoreCase) {
             name = name.toUpperCase();
         }
-        Object key = this.attributes.get(name);
+        String key = this.attributes.get(name);
         Object result;
         if (key == null) {
             key = defaultKey;
@@ -1023,7 +926,7 @@ public class XMLElement
             if (allowLiterals) {
                 result = key;
             } else {
-                throw this.invalidValue(name, (String) key);
+                throw this.invalidValue(name, key);
             }
         }
         return result;
@@ -1050,9 +953,9 @@ public class XMLElement
      *                                            java.lang.String)
      *         getStringAttribute(String, String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getStringAttribute(String, Hashtable, String, boolean)
+     *         getStringAttribute(String, Map, String, boolean)
      */
     public String getStringAttribute(String name)
     {
@@ -1080,14 +983,14 @@ public class XMLElement
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String)
      *         getStringAttribute(String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getStringAttribute(String, Hashtable, String, boolean)
+     *         getStringAttribute(String, Map, String, boolean)
      */
     public String getStringAttribute(String name,
                                      String defaultValue)
     {
-        return (String) this.getAttribute(name, defaultValue);
+        return this.getAttribute(name, defaultValue);
     }
 
 
@@ -1105,7 +1008,7 @@ public class XMLElement
      * @param name
      *     The name of the attribute.
      * @param valueSet
-     *     Hashtable mapping keys to values.
+     *     Map mapping keys to values.
      * @param defaultKey
      *     Key to use if the attribute is missing.
      * @param allowLiterals
@@ -1130,10 +1033,10 @@ public class XMLElement
      *                                            java.lang.String)
      *         getStringAttribute(String, String)
      */
-    public String getStringAttribute(String    name,
-                                     Hashtable valueSet,
-                                     String    defaultKey,
-                                     boolean   allowLiterals)
+    public String getStringAttribute(String                      name,
+                                     Map<? super String, String> valueSet,
+                                     String                      defaultKey,
+                                     boolean                     allowLiterals)
     {
         return (String) this.getAttribute(name, valueSet, defaultKey,
                                           allowLiterals);
@@ -1157,9 +1060,9 @@ public class XMLElement
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String, int)
      *         getIntAttribute(String, int)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String,
-     *                                         java.util.Hashtable,
+     *                                         java.util.Map,
      *                                         java.lang.String, boolean)
-     *         getIntAttribute(String, Hashtable, String, boolean)
+     *         getIntAttribute(String, Map, String, boolean)
      */
     public int getIntAttribute(String name)
     {
@@ -1185,9 +1088,9 @@ public class XMLElement
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String)
      *         getIntAttribute(String)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String,
-     *                                         java.util.Hashtable,
+     *                                         java.util.Map,
      *                                         java.lang.String, boolean)
-     *         getIntAttribute(String, Hashtable, String, boolean)
+     *         getIntAttribute(String, Map, String, boolean)
      */
     public int getIntAttribute(String name,
                                int    defaultValue)
@@ -1195,7 +1098,7 @@ public class XMLElement
         if (this.ignoreCase) {
             name = name.toUpperCase();
         }
-        String value = (String) this.attributes.get(name);
+        String value = this.attributes.get(name);
         if (value == null) {
             return defaultValue;
         } else {
@@ -1221,7 +1124,7 @@ public class XMLElement
      * @param name
      *     The name of the attribute.
      * @param valueSet
-     *     Hashtable mapping keys to values.
+     *     Map mapping keys to values.
      * @param defaultKey
      *     Key to use if the attribute is missing.
      * @param allowLiteralNumbers
@@ -1245,32 +1148,28 @@ public class XMLElement
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String, int)
      *         getIntAttribute(String, int)
      */
-    public int getIntAttribute(String    name,
-                               Hashtable valueSet,
-                               String    defaultKey,
-                               boolean   allowLiteralNumbers)
+    public int getIntAttribute(String                       name,
+                               Map<? super String, Integer> valueSet,
+                               String                       defaultKey,
+                               boolean                      allowLiteralNumbers)
     {
         if (this.ignoreCase) {
             name = name.toUpperCase();
         }
-        Object key = this.attributes.get(name);
+        String key = this.attributes.get(name);
         Integer result;
         if (key == null) {
             key = defaultKey;
         }
-        try {
-            result = (Integer) valueSet.get(key);
-        } catch (ClassCastException e) {
-            throw this.invalidValueSet(name);
-        }
+        result = valueSet.get(key);
         if (result == null) {
             if (! allowLiteralNumbers) {
-                throw this.invalidValue(name, (String) key);
+                throw this.invalidValue(name, key);
             }
             try {
-                result = Integer.valueOf((String) key);
+                result = Integer.valueOf(key);
             } catch (NumberFormatException e) {
-                throw this.invalidValue(name, (String) key);
+                throw this.invalidValue(name, key);
             }
         }
         return result.intValue();
@@ -1294,9 +1193,9 @@ public class XMLElement
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String, double)
      *         getDoubleAttribute(String, double)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getDoubleAttribute(String, Hashtable, String, boolean)
+     *         getDoubleAttribute(String, Map, String, boolean)
      */
     public double getDoubleAttribute(String name)
     {
@@ -1322,9 +1221,9 @@ public class XMLElement
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String)
      *         getDoubleAttribute(String)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getDoubleAttribute(String, Hashtable, String, boolean)
+     *         getDoubleAttribute(String, Map, String, boolean)
      */
     public double getDoubleAttribute(String name,
                                      double defaultValue)
@@ -1332,7 +1231,7 @@ public class XMLElement
         if (this.ignoreCase) {
             name = name.toUpperCase();
         }
-        String value = (String) this.attributes.get(name);
+        String value = this.attributes.get(name);
         if (value == null) {
             return defaultValue;
         } else {
@@ -1359,7 +1258,7 @@ public class XMLElement
      * @param name
      *     The name of the attribute.
      * @param valueSet
-     *     Hashtable mapping keys to values.
+     *     Map mapping keys to values.
      * @param defaultKey
      *     Key to use if the attribute is missing.
      * @param allowLiteralNumbers
@@ -1383,32 +1282,28 @@ public class XMLElement
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String, double)
      *         getDoubleAttribute(String, double)
      */
-    public double getDoubleAttribute(String    name,
-                                     Hashtable valueSet,
-                                     String    defaultKey,
-                                     boolean   allowLiteralNumbers)
+    public double getDoubleAttribute(String                      name,
+                                     Map<? super String, Double> valueSet,
+                                     String                      defaultKey,
+                                     boolean                     allowLiteralNumbers)
     {
         if (this.ignoreCase) {
             name = name.toUpperCase();
         }
-        Object key = this.attributes.get(name);
+        String key = this.attributes.get(name);
         Double result;
         if (key == null) {
             key = defaultKey;
         }
-        try {
-            result = (Double) valueSet.get(key);
-        } catch (ClassCastException e) {
-            throw this.invalidValueSet(name);
-        }
+        result = valueSet.get(key);
         if (result == null) {
             if (! allowLiteralNumbers) {
-                throw this.invalidValue(name, (String) key);
+                throw this.invalidValue(name, key);
             }
             try {
-                result = Double.valueOf((String) key);
+                result = Double.valueOf(key);
             } catch (NumberFormatException e) {
-                throw this.invalidValue(name, (String) key);
+                throw this.invalidValue(name, key);
             }
         }
         return result.doubleValue();
@@ -1451,7 +1346,7 @@ public class XMLElement
         if (this.ignoreCase) {
             name = name.toUpperCase();
         }
-        Object value = this.attributes.get(name);
+        String value = this.attributes.get(name);
         if (value == null) {
             return defaultValue;
         } else if (value.equals(trueValue)) {
@@ -1459,151 +1354,8 @@ public class XMLElement
         } else if (value.equals(falseValue)) {
             return false;
         } else {
-            throw this.invalidValue(name, (String) value);
+            throw this.invalidValue(name, value);
         }
-    }
-
-
-    /**
-     * Returns an attribute by looking up a key in a hashtable.
-     *
-     * @deprecated Use {@link #getIntAttribute(java.lang.String,
-     *             java.util.Hashtable, java.lang.String, boolean)
-     *             getIntAttribute} instead.
-     */
-    public int getIntProperty(String    name,
-                              Hashtable valueSet,
-                              String    defaultKey)
-    {
-        return this.getIntAttribute(name, valueSet, defaultKey, false);
-    }
-
-
-    /**
-     * Returns an attribute.
-     *
-     * @deprecated Use {@link #getStringAttribute(java.lang.String)
-     *             getStringAttribute} instead.
-     */
-    public String getProperty(String name)
-    {
-        return this.getStringAttribute(name);
-    }
-
-
-    /**
-     * Returns an attribute.
-     *
-     * @deprecated Use {@link #getStringAttribute(java.lang.String,
-     *             java.lang.String) getStringAttribute} instead.
-     */
-    public String getProperty(String name,
-                              String defaultValue)
-    {
-        return this.getStringAttribute(name, defaultValue);
-    }
-
-
-    /**
-     * Returns an attribute.
-     *
-     * @deprecated Use {@link #getIntAttribute(java.lang.String, int)
-     *             getIntAttribute} instead.
-     */
-    public int getProperty(String name,
-                           int    defaultValue)
-    {
-        return this.getIntAttribute(name, defaultValue);
-    }
-
-
-    /**
-     * Returns an attribute.
-     *
-     * @deprecated Use {@link #getDoubleAttribute(java.lang.String, double)
-     *             getDoubleAttribute} instead.
-     */
-    public double getProperty(String name,
-                              double defaultValue)
-    {
-        return this.getDoubleAttribute(name, defaultValue);
-    }
-
-
-    /**
-     * Returns an attribute.
-     *
-     * @deprecated Use {@link #getBooleanAttribute(java.lang.String,
-     *             java.lang.String, java.lang.String, boolean)
-     *             getBooleanAttribute} instead.
-     */
-    public boolean getProperty(String  key,
-                               String  trueValue,
-                               String  falseValue,
-                               boolean defaultValue)
-    {
-        return this.getBooleanAttribute(key, trueValue, falseValue,
-                                        defaultValue);
-    }
-
-
-    /**
-     * Returns an attribute by looking up a key in a hashtable.
-     *
-     * @deprecated Use {@link #getAttribute(java.lang.String,
-     *             java.util.Hashtable, java.lang.String, boolean)
-     *             getAttribute} instead.
-     */
-    public Object getProperty(String    name,
-                              Hashtable valueSet,
-                              String    defaultKey)
-    {
-        return this.getAttribute(name, valueSet, defaultKey, false);
-    }
-
-
-    /**
-     * Returns an attribute by looking up a key in a hashtable.
-     *
-     * @deprecated Use {@link #getStringAttribute(java.lang.String,
-     *             java.util.Hashtable, java.lang.String, boolean)
-     *             getStringAttribute} instead.
-     */
-    public String getStringProperty(String    name,
-                                    Hashtable valueSet,
-                                    String    defaultKey)
-    {
-        return this.getStringAttribute(name, valueSet, defaultKey, false);
-    }
-
-
-    /**
-     * Returns an attribute by looking up a key in a hashtable.
-     *
-     * @deprecated Use {@link #getIntAttribute(java.lang.String,
-     *             java.util.Hashtable, java.lang.String, boolean)
-     *             getIntAttribute} instead.
-     */
-    public int getSpecialIntProperty(String    name,
-                                     Hashtable valueSet,
-                                     String    defaultKey)
-    {
-        return this.getIntAttribute(name, valueSet, defaultKey, true);
-    }
-
-
-    /**
-     * Returns an attribute by looking up a key in a hashtable.
-     *
-     * @deprecated Use {@link #getDoubleAttribute(java.lang.String,
-     *             java.util.Hashtable, java.lang.String, boolean)
-     *             getDoubleAttribute} instead.
-     */
-    public double getSpecialDoubleProperty(String    name,
-                                           Hashtable valueSet,
-                                           String    defaultKey)
-    {
-        return this.getDoubleAttribute(name, valueSet, defaultKey, true);
     }
 
 
@@ -1615,17 +1367,6 @@ public class XMLElement
     public String getName()
     {
         return this.name;
-    }
-
-
-    /**
-     * Returns the name of the element.
-     *
-     * @deprecated Use {@link #getName() getName} instead.
-     */
-    public String getTagName()
-    {
-        return this.getName();
     }
 
 
@@ -1690,8 +1431,8 @@ public class XMLElement
     {
         this.name = null;
         this.contents = "";
-        this.attributes = new Hashtable();
-        this.children = new Vector();
+        this.attributes = new HashMap<String, String>();
+        this.children = new ArrayList<XMLElement>();
         this.charReadTooMuch = '\0';
         this.reader = reader;
         this.parserLineNr = startingLineNr;
@@ -1958,7 +1699,7 @@ public class XMLElement
      */
     public void removeChild(XMLElement child)
     {
-        this.children.removeElement(child);
+        this.children.remove(child);
     }
 
 
@@ -1991,34 +1732,34 @@ public class XMLElement
      * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.lang.Object)
      *         getAttribute(String, Object)
      * @see nanoxml.XMLElement#getAttribute(java.lang.String,
-     *                                      java.util.Hashtable,
+     *                                      java.util.Map,
      *                                      java.lang.String, boolean)
-     *         getAttribute(String, Hashtable, String, boolean)
+     *         getAttribute(String, Map, String, boolean)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String)
      *         getStringAttribute(String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
      *                                            java.lang.String)
      *         getStringAttribute(String, String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getStringAttribute(String, Hashtable, String, boolean)
+     *         getStringAttribute(String, Map, String, boolean)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String)
      *         getIntAttribute(String)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String, int)
      *         getIntAttribute(String, int)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String,
-     *                                         java.util.Hashtable,
+     *                                         java.util.Map,
      *                                         java.lang.String, boolean)
-     *         getIntAttribute(String, Hashtable, String, boolean)
+     *         getIntAttribute(String, Map, String, boolean)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String)
      *         getDoubleAttribute(String)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String, double)
      *         getDoubleAttribute(String, double)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String,
-     *                                            java.util.Hashtable,
+     *                                            java.util.Map,
      *                                            java.lang.String, boolean)
-     *         getDoubleAttribute(String, Hashtable, String, boolean)
+     *         getDoubleAttribute(String, Map, String, boolean)
      * @see nanoxml.XMLElement#getBooleanAttribute(java.lang.String,
      *                                             java.lang.String,
      *                                             java.lang.String, boolean)
@@ -2030,36 +1771,6 @@ public class XMLElement
             name = name.toUpperCase();
         }
         this.attributes.remove(name);
-    }
-
-
-    /**
-     * Removes an attribute.
-     *
-     * @param name
-     *     The name of the attribute.
-     *
-     * @deprecated Use {@link #removeAttribute(java.lang.String)
-     *             removeAttribute} instead.
-     */
-    public void removeProperty(String name)
-    {
-        this.removeAttribute(name);
-    }
-
-
-    /**
-     * Removes an attribute.
-     *
-     * @param name
-     *     The name of the attribute.
-     *
-     * @deprecated Use {@link #removeAttribute(java.lang.String)
-     *             removeAttribute} instead.
-     */
-    public void removeChild(String name)
-    {
-        this.removeAttribute(name);
     }
 
 
@@ -2086,20 +1797,6 @@ public class XMLElement
     public void setContent(String content)
     {
         this.contents = content;
-    }
-
-
-    /**
-     * Changes the name of the element.
-     *
-     * @param name
-     *     The new name.
-     *
-     * @deprecated Use {@link #setName(java.lang.String) setName} instead.
-     */
-    public void setTagName(String name)
-    {
-        this.setName(name);
     }
 
 
@@ -2168,11 +1865,10 @@ public class XMLElement
         writer.write('<');
         writer.write(this.name);
         if (! this.attributes.isEmpty()) {
-            Enumeration enum = this.attributes.keys();
-            while (enum.hasMoreElements()) {
+            for (Map.Entry<String, String> e : this.attributes.entrySet()) {
                 writer.write(' ');
-                String key = (String) enum.nextElement();
-                String value = (String) this.attributes.get(key);
+                String key = e.getKey();
+                String value = e.getValue();
                 writer.write(key);
                 writer.write('='); writer.write('"');
                 this.writeEncoded(writer, value);
@@ -2189,9 +1885,7 @@ public class XMLElement
             writer.write('/'); writer.write('>');
         } else {
             writer.write('>');
-            Enumeration enum = this.enumerateChildren();
-            while (enum.hasMoreElements()) {
-                XMLElement child = (XMLElement) enum.nextElement();
+            for (XMLElement child : this.children) {
                 child.write(writer);
             }
             writer.write('<'); writer.write('/');
@@ -2334,6 +2028,7 @@ public class XMLElement
                 case '\t':
                 case '\n':
                     result.append(ch);
+                    break;
                 case '\r':
                     break;
                 default:
@@ -2746,7 +2441,7 @@ public class XMLElement
             }
             buf.append(ch);
         } else {
-            char[] value = (char[]) this.entities.get(key);
+            char[] value = this.entities.get(key);
             if (value == null) {
                 throw this.unknownEntity(key);
             }
